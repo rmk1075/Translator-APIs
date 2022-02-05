@@ -47,41 +47,50 @@ class Papago:
         return result.json()["message"]["result"]["translatedText"]
 
 
-def main(resource=str(pathlib.Path(os.path.join("/", os.path.dirname(os.path.abspath(__file__)), "../resource")).resolve())):
+def main(root=str(pathlib.Path(os.path.dirname(os.path.abspath(__file__))).resolve())):
+    input_path = "/".join([root, "input"])
+    output_path = "/".join([root, "output"])
+    resource = "/".join([root, "resource"])
     if not os.path.exists(resource) or not os.path.isdir(resource):
         print("warning :: invalid resource path. resource={}".format(resource))
         return
 
     try:
+        if not os.path.exists(input_path) or not os.path.isdir(input_path):
+            print("warning :: invalid input path. input_path={}".format(input_path))
+            return
+
+        if not os.path.exists(output_path) or not os.path.isdir(output_path):
+            os.makedirs(output_path)
+
         api = Papago(resource)
-        for file_name in os.listdir(resource):
-            file_path = os.path.join("/", resource, file_name)
+        for file_name in os.listdir(input_path):
+            file_path = os.path.join("/", input_path, file_name)
             if os.path.isdir(file_path):
                 continue
 
             if file_path.split(".")[-1] != "txt":
                 continue
             
-            with open(file_path, "r") as file:
-                for line in file.readlines():
-                    line = line.strip()
-                    # TODO: consider separator
-                    # for sentence in line.split("! | 。 | ?"):
-                    for sentence in line.split("。"):
-                        if len(sentence) == 0:
-                            print()
-                            continue
+            out_path = os.path.join("/", output_path, file_name)
+            with open(out_path, "w") as out:
+                with open(file_path, "r") as file:
+                    for line in file.readlines():
+                        line = line.strip()
+                        # TODO: consider separator
+                        # for sentence in line.split("! | 。 | ?"):
+                        for sentence in line.split("。"):
+                            if len(sentence) == 0:
+                                out.write("\n")
+                                continue
 
-                        translated_text = api.translate(sentence)
-
-                        print(sentence)
-                        print(translated_text)
-                        print()
+                            translated_text = api.translate(sentence)
+                            write = sentence + "\n" + translated_text + "\n"
+                            out.write(write)
     except Exception as e:
         print("exception={}".format(e))
 
 
 if __name__ == "__main__":
-    # constant
-    DIR_LOCATION = str(pathlib.Path(os.path.join("/", os.path.dirname(os.path.abspath(__file__)), "../resource")).resolve())
-    main(DIR_LOCATION)
+    ROOT_LOCATION = str(pathlib.Path(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))).resolve())
+    main(ROOT_LOCATION)
