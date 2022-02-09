@@ -31,3 +31,11 @@
 
     client = google_translate.Client()
     ~~~
+
+3. Kakao Translation API
+
+    - Kakao 번역 API 를 사용한 벙녁기
+
+    - Kakao Developers REST API 를 사용하여 POST 통신으로 번역된 텍스트를 얻느다.
+
+    - 번역된 텍스트들은 마침표를 기준으로 나눠져서 list 에 담겨져 반환된다.

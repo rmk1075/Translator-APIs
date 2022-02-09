@@ -5,6 +5,7 @@ import json
 import os
 import pathlib
 import requests
+import traceback
 
 
 '''
@@ -15,7 +16,8 @@ ApiFactory 클래스
 class ApiFactory:
     Papago = "Papago"
     GT = "GoogleTranslation"
-    api_types = [Papago, GT]
+    KT = "KakaoTranslation"
+    api_types = [Papago, GT, KT]
 
     @classmethod
     def getApiInstance(cls, api_type="Papago", resource=str(pathlib.Path(os.path.join("/", os.path.dirname(os.path.abspath(__file__)), "../resource")).resolve())):
@@ -26,6 +28,9 @@ class ApiFactory:
             return Papago(api_type=api_type, resource=resource)
         elif api_type == cls.GT:
             return GoogleTranslation(api_type=api_type, resource=resource)
+        elif api_type == cls.KT:
+            return KakaoTranslation(api_type=api_type, resource=resource)
+
 
 '''
 Api 클래스
@@ -72,6 +77,7 @@ class GoogleTranslation(Api):
 
         return result["translatedText"]
 
+
 '''
 Papago 클래스
 - Naver Papago 번역 API 를 사용하는 번역기 클래스
@@ -82,7 +88,7 @@ class Papago(Api):
         self._path = os.path.join("/", resource, "key.json")
         self._info = Api.read_info(path=self._path, api_type=self._api_type)
 
-        if "id" not in info or "key" not in info:
+        if "id" not in self._info or "key" not in self._info:
             raise RuntimeError("error :: invalid account info. please check key.json. info={}".format(info))
         self._id = self._info["id"]
         self._key = self._info["key"]
@@ -120,6 +126,50 @@ class Papago(Api):
         return result.json()["message"]["result"]["translatedText"]
 
 
+'''
+KakaoTranslation 클래스
+- Kakao 번역 API 를 사용하는 번역기 클래스
+'''
+class KakaoTranslation(Api):
+    def __init__(self, api_type="KakaoTranslation", resource=str(pathlib.Path(os.path.join("/", os.path.dirname(os.path.abspath(__file__)), "../resource")).resolve())):
+        self._api_type = api_type
+        self._path = os.path.join("/", resource, "key.json")
+        self._info = Api.read_info(path=self._path, api_type=self._api_type)
+
+        if "key" not in self._info:
+            raise RuntimeError("error :: invalid account info. please check key.json. info={}".format(info))
+        self._key = self._info["key"]
+
+    def translate(self, text):
+        method = "POST"
+        url = "https://dapi.kakao.com/v2/translation/translate"
+
+        headers = {
+            "Content-Type": "application/x-www-form-urlencoded",
+            "Authorization": "KakaoAK " + self._key
+        }
+
+        source = "kr"
+        target = "cn"
+        data = {
+            "src_lang": source,
+            "target_lang": target,
+            "query": text
+        }
+
+        result = requests.request(
+            method=method,
+            url=url,
+            headers=headers,
+            data=data
+        )
+
+        if result.status_code != 200:
+            raise RuntimeError("error :: api request failed.\n url={}\n headers={}\n data={}\n result={}\n result.text={}".format(url, headers, data, result, result.text))
+
+        return " ".join(result.json()["translated_text"][0])
+
+
 def main(root=str(pathlib.Path(os.path.dirname(os.path.abspath(__file__))).resolve()), api_type="PAPAGO"):
     input_path = "/".join([root, "input"])
     output_path = "/".join([root, "output"])
@@ -136,8 +186,7 @@ def main(root=str(pathlib.Path(os.path.dirname(os.path.abspath(__file__))).resol
         if not os.path.exists(output_path) or not os.path.isdir(output_path):
             os.makedirs(output_path)
 
-        # api = ApiFactory.getApiInstance("Papago")
-        api = ApiFactory.getApiInstance("GoogleTranslation")
+        api = ApiFactory.getApiInstance(api_type=api_type)
         for file_name in os.listdir(input_path):
             file_path = os.path.join("/", input_path, file_name)
             if os.path.isdir(file_path):
@@ -160,9 +209,10 @@ def main(root=str(pathlib.Path(os.path.dirname(os.path.abspath(__file__))).resol
                         out.write(write)
     except Exception as e:
         print("exception={}".format(e))
+        traceback.print_exc()
 
 
 if __name__ == "__main__":
     ROOT_LOCATION = str(pathlib.Path(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))).resolve())
-    API_TYPE = "PAPAGO"
+    API_TYPE = "KakaoTranslation"
     main(ROOT_LOCATION, API_TYPE)
