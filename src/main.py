@@ -5,6 +5,7 @@ import json
 import os
 import pathlib
 import requests
+import sys
 import traceback
 
 
@@ -24,12 +25,10 @@ class ApiFactory:
         if api_type not in cls.api_types:
             raise RuntimeError("error :: unsupported api type. please check api type. api_type={}".format(api_type))
 
-        if api_type == cls.Papago:
-            return Papago(api_type=api_type, resource=resource)
-        elif api_type == cls.GT:
-            return GoogleTranslation(api_type=api_type, resource=resource)
-        elif api_type == cls.KT:
-            return KakaoTranslation(api_type=api_type, resource=resource)
+        mod = getattr(sys.modules[__name__], api_type)
+        if not mod:
+            raise RuntimeError("error :: unknown api type class. please check api type and the API classes. api_type={}".format(api_type))
+        return mod(api_type=api_type, resource=resource)
 
 
 '''
