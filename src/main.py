@@ -10,18 +10,18 @@ import traceback
 
 
 '''
-ApiFactory 클래스
+TranslatorFactory 클래스
 - 입력받은 api_type 에 맞는 api 객체를 반환하는 팩토리 클래스
 - api_types 목록에 지원하는 api 종류를 저장
 '''
-class ApiFactory:
+class TranslatorFactory:
     Papago = "Papago"
     GT = "GoogleTranslation"
     KT = "KakaoTranslation"
     api_types = [Papago, GT, KT]
 
     @classmethod
-    def getApiInstance(cls, api_type="Papago", resource=str(pathlib.Path(os.path.join("/", os.path.dirname(os.path.abspath(__file__)), "../resource")).resolve())):
+    def getTranslator(cls, api_type="Papago", resource=str(pathlib.Path(os.path.join("/", os.path.dirname(os.path.abspath(__file__)), "../resource")).resolve())):
         if api_type not in cls.api_types:
             raise RuntimeError("error :: unsupported api type. please check api type. api_type={}".format(api_type))
 
@@ -32,11 +32,11 @@ class ApiFactory:
 
 
 '''
-Api 클래스
+Translator 클래스
 - read_key(cls, path, api_type): path 의 key 파일에서 api_type 에 맞는 api 키 정보를 읽어온다.
 - translate(self, text): 입력된 text 를 번역하는 abstract method.
 '''
-class Api:
+class Translator:
     @classmethod
     def read_info(cls, path, api_type):
         with open(path, "r") as file:
@@ -57,11 +57,11 @@ GoogleTranslation 클래스
 - Google Translation API 를 사용하는 번역기 클래스
 - google cloud 패키지 설치 및 credential 환경변수 설정
 '''
-class GoogleTranslation(Api):
+class GoogleTranslation(Translator):
     def __init__(self, api_type="GoogleTranslation", resource=str(pathlib.Path(os.path.join("/", os.path.dirname(os.path.abspath(__file__)), "../resource")).resolve())):
         self._api_type = api_type
         self._path = os.path.join("/", resource, "key.json")
-        self._info = Api.read_info(path=self._path, api_type=self._api_type)
+        self._info = Translator.read_info(path=self._path, api_type=self._api_type)
 
         if "key" not in self._info:
             raise RuntimeError("error :: invalid account info. please check key.json. info={}".format(self._info))
@@ -81,11 +81,11 @@ class GoogleTranslation(Api):
 Papago 클래스
 - Naver Papago 번역 API 를 사용하는 번역기 클래스
 '''
-class Papago(Api):
+class Papago(Translator):
     def __init__(self, api_type="Papago", resource=str(pathlib.Path(os.path.join("/", os.path.dirname(os.path.abspath(__file__)), "../resource")).resolve())):
         self._api_type = api_type
         self._path = os.path.join("/", resource, "key.json")
-        self._info = Api.read_info(path=self._path, api_type=self._api_type)
+        self._info = Translator.read_info(path=self._path, api_type=self._api_type)
 
         if "id" not in self._info or "key" not in self._info:
             raise RuntimeError("error :: invalid account info. please check key.json. info={}".format(info))
@@ -129,11 +129,11 @@ class Papago(Api):
 KakaoTranslation 클래스
 - Kakao 번역 API 를 사용하는 번역기 클래스
 '''
-class KakaoTranslation(Api):
+class KakaoTranslation(Translator):
     def __init__(self, api_type="KakaoTranslation", resource=str(pathlib.Path(os.path.join("/", os.path.dirname(os.path.abspath(__file__)), "../resource")).resolve())):
         self._api_type = api_type
         self._path = os.path.join("/", resource, "key.json")
-        self._info = Api.read_info(path=self._path, api_type=self._api_type)
+        self._info = Translator.read_info(path=self._path, api_type=self._api_type)
 
         if "key" not in self._info:
             raise RuntimeError("error :: invalid account info. please check key.json. info={}".format(info))
@@ -185,7 +185,7 @@ def main(root=str(pathlib.Path(os.path.dirname(os.path.abspath(__file__))).resol
         if not os.path.exists(output_path) or not os.path.isdir(output_path):
             os.makedirs(output_path)
 
-        api = ApiFactory.getApiInstance(api_type=api_type)
+        api = TranslatorFactory.getTranslator(api_type=api_type)
         for file_name in os.listdir(input_path):
             file_path = os.path.join("/", input_path, file_name)
             if os.path.isdir(file_path):
