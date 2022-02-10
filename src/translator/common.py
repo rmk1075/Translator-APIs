@@ -8,21 +8,21 @@ import sys
 
 '''
 TranslatorFactory 클래스
-- 입력받은 api_type 에 맞는 api 객체를 반환하는 팩토리 클래스
-- api_types 목록에 지원하는 api 종류를 저장
+- 입력받은 translator_type 에 맞는 Translator 객체를 반환하는 팩토리 클래스
+- translator_types 목록에 지원하는 translator 종류를 저장
 '''
 class TranslatorFactory:
     Papago = "Papago"
     GT = "GoogleTranslation"
     KT = "KakaoTranslation"
-    api_types = [Papago, GT, KT]
+    translator_types = [Papago, GT, KT]
 
     @classmethod
-    def getTranslator(cls, api_type="Papago", resource=str(pathlib.Path(os.path.join("/", os.path.dirname(os.path.abspath(__file__)), "../../resource")).resolve())):
-        if api_type not in cls.api_types:
-            raise RuntimeError("error :: unsupported api type. please check api type. api_type={}".format(api_type))
+    def getTranslator(cls, translator_type="Papago", resource=str(pathlib.Path(os.path.join("/", os.path.dirname(os.path.abspath(__file__)), "../../resource")).resolve())):
+        if translator_type not in cls.translator_types:
+            raise RuntimeError("error :: unsupported translator type. please check translator type. translator_type={}".format(translator_type))
 
-        mod = getattr(sys.modules[__name__], api_type)
+        mod = getattr(sys.modules[__name__], translator_type)
         if not mod:
-            raise RuntimeError("error :: unknown api type class. please check api type and the API classes. api_type={}".format(api_type))
-        return mod(api_type=api_type, resource=resource)
+            raise RuntimeError("error :: unknown translator type class. please check translator type and the Translator classes. translator_type={}".format(translator_type))
+        return mod(translator_type=translator_type, resource=resource)

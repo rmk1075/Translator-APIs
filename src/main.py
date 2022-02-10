@@ -5,23 +5,27 @@ import pathlib
 import traceback
 
 
-def main(root=str(pathlib.Path(os.path.dirname(os.path.abspath(__file__))).resolve()), api_type="PAPAGO"):
+def init_path(root):
+    resource_path = "/".join([root, "resource"])
+    if not os.path.exists(resource_path) or not os.path.isdir(resource_path):
+        raise FileNotFoundError("error :: invalid resource path. resource_path={}".format(resource_path))
+
     input_path = "/".join([root, "input"])
+    if not os.path.exists(input_path) or not os.path.isdir(input_path):
+        raise FileNotFoundError("error :: invalid input path. input_path={}".format(input_path))
+
     output_path = "/".join([root, "output"])
-    resource = "/".join([root, "resource"])
-    if not os.path.exists(resource) or not os.path.isdir(resource):
-        print("warning :: invalid resource path. resource={}".format(resource))
-        return
+    if not os.path.exists(output_path) or not os.path.isdir(output_path):
+        print("info :: output directory is created. output_path={}".format(output_path))
+        os.makedirs(output_path)
 
+    return input_path, output_path, resource_path
+
+def main(root=str(pathlib.Path(os.path.dirname(os.path.abspath(__file__))).resolve()), translator_type="PAPAGO"):
     try:
-        if not os.path.exists(input_path) or not os.path.isdir(input_path):
-            print("warning :: invalid input path. input_path={}".format(input_path))
-            return
+        input_path, output_path, resource_path = init_path(root)
 
-        if not os.path.exists(output_path) or not os.path.isdir(output_path):
-            os.makedirs(output_path)
-
-        translator = TranslatorFactory.getTranslator(api_type=api_type, resource=str(pathlib.Path(os.path.join("/", root, "resource")).resolve()))
+        translator = TranslatorFactory.getTranslator(translator_type=translator_type, resource=resource_path)
         for file_name in os.listdir(input_path):
             file_path = os.path.join("/", input_path, file_name)
             if os.path.isdir(file_path):
@@ -49,5 +53,5 @@ def main(root=str(pathlib.Path(os.path.dirname(os.path.abspath(__file__))).resol
 
 if __name__ == "__main__":
     ROOT_LOCATION = str(pathlib.Path(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))).resolve())
-    API_TYPE = "KakaoTranslation"
-    main(ROOT_LOCATION, API_TYPE)
+    TRANSLATOR_TYPE = "GoogleTranslation"
+    main(ROOT_LOCATION, TRANSLATOR_TYPE)

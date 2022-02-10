@@ -9,18 +9,18 @@ import requests
 
 '''
 Translator 클래스
-- read_key(cls, path, api_type): path 의 key 파일에서 api_type 에 맞는 api 키 정보를 읽어온다.
+- read_key(cls, path, translator_type): path 의 key 파일에서 translator_type 에 맞는 translator 키 정보를 읽어온다.
 - translate(self, text): 입력된 text 를 번역하는 abstract method.
 '''
 class Translator:
     @classmethod
-    def read_info(cls, path, api_type):
+    def read_info(cls, path, translator_type):
         with open(path, "r") as file:
             jf = json.load(file)
-            if api_type not in jf:
-                raise RuntimeError("error :: key file does not contains thie api account info. please check key.json. api_type={} jf={}".format(api_type, jf))
+            if translator_type not in jf:
+                raise RuntimeError("error :: key file does not contains thie translator account info. please check key.json. translator_type={} jf={}".format(translator_type, jf))
 
-            info = jf[api_type]
+            info = jf[translator_type]
             return info
 
     @abstractmethod
@@ -34,10 +34,10 @@ GoogleTranslation 클래스
 - google cloud 패키지 설치 및 credential 환경변수 설정
 '''
 class GoogleTranslation(Translator):
-    def __init__(self, api_type="GoogleTranslation", resource=str(pathlib.Path(os.path.join("/", os.path.dirname(os.path.abspath(__file__)), "../resource")).resolve())):
-        self._api_type = api_type
+    def __init__(self, translator_type="GoogleTranslation", resource=str(pathlib.Path(os.path.join("/", os.path.dirname(os.path.abspath(__file__)), "../resource")).resolve())):
+        self._translator_type = translator_type
         self._path = os.path.join("/", resource, "key.json")
-        self._info = Translator.read_info(path=self._path, api_type=self._api_type)
+        self._info = Translator.read_info(path=self._path, translator_type=self._translator_type)
 
         if "key" not in self._info:
             raise RuntimeError("error :: invalid account info. please check key.json. info={}".format(self._info))
@@ -58,10 +58,10 @@ Papago 클래스
 - Naver Papago 번역 API 를 사용하는 번역기 클래스
 '''
 class Papago(Translator):
-    def __init__(self, api_type="Papago", resource=str(pathlib.Path(os.path.join("/", os.path.dirname(os.path.abspath(__file__)), "../resource")).resolve())):
-        self._api_type = api_type
+    def __init__(self, translator_type="Papago", resource=str(pathlib.Path(os.path.join("/", os.path.dirname(os.path.abspath(__file__)), "../resource")).resolve())):
+        self._translator_type = translator_type
         self._path = os.path.join("/", resource, "key.json")
-        self._info = Translator.read_info(path=self._path, api_type=self._api_type)
+        self._info = Translator.read_info(path=self._path, translator_type=self._translator_type)
 
         if "id" not in self._info or "key" not in self._info:
             raise RuntimeError("error :: invalid account info. please check key.json. info={}".format(info))
@@ -78,8 +78,6 @@ class Papago(Translator):
             "X-Naver-Client-Secret": self._key,
         }
 
-        # source = "zh-CN"
-        # target = "ko"
         source = "ko"
         target = "zh-CN"
         data = {
@@ -106,10 +104,10 @@ KakaoTranslation 클래스
 - Kakao 번역 API 를 사용하는 번역기 클래스
 '''
 class KakaoTranslation(Translator):
-    def __init__(self, api_type="KakaoTranslation", resource=str(pathlib.Path(os.path.join("/", os.path.dirname(os.path.abspath(__file__)), "../resource")).resolve())):
-        self._api_type = api_type
+    def __init__(self, translator_type="KakaoTranslation", resource=str(pathlib.Path(os.path.join("/", os.path.dirname(os.path.abspath(__file__)), "../resource")).resolve())):
+        self._translator_type = translator_type
         self._path = os.path.join("/", resource, "key.json")
-        self._info = Translator.read_info(path=self._path, api_type=self._api_type)
+        self._info = Translator.read_info(path=self._path, translator_type=self._translator_type)
 
         if "key" not in self._info:
             raise RuntimeError("error :: invalid account info. please check key.json. info={}".format(info))
